@@ -1,0 +1,21 @@
+import express from "express";
+import AuthRouter from "./Routers/AuthRouter.js";
+import AppRouter from "./Routers/AppRouter.js";
+import cors from "cors";
+import bodyParser from "body-parser";
+import mongoose, { connect } from "mongoose";
+import dotenv from "dotenv";
+import dbconnector from "./utils/db.js";
+import cookieParser from "cookie-parser";
+dotenv.config();
+const app = express();
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(cors());
+app.use(cookieParser());
+app.use("/auth", AuthRouter);
+app.use("/app", AppRouter);
+dbconnector();
+app.listen(process.env.PORT, () => {
+  console.log(`server is listening to ${process.env.PORT}`);
+});
