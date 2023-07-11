@@ -17,11 +17,18 @@ AuthRouter.post("/login", async (req, res) => {
         {},
         (err, token) => {
           if (err) throw err;
-          res.status(200).json({ message: "user created", token: token });
+          res
+            .cookie("token", token, { sameSite: "none", secure: true })
+            .json({ message: "user loggedin", token: token })
+            .status(200);
         }
       );
+    } else {
+      return res.status(401).json({ message: "Password invalid" });
     }
-  }
+  } else {
+    return res.status(400).json({ message: "user not found" });
+  } 
 });
 
 AuthRouter.post("/register", async (req, res) => {
@@ -29,9 +36,7 @@ AuthRouter.post("/register", async (req, res) => {
   // checking if user already created
   const foundUser = await User.findOne({ username });
   if (foundUser) {
-    return res
-      .status(409)
-      .json({ message: "user already registerd" });
+    return res.status(409).json({ message: "user already registerd" });
   }
 
   const hashedpassword = bcrypt.hashSync(password, bcryptSalt);
@@ -44,7 +49,10 @@ AuthRouter.post("/register", async (req, res) => {
         {},
         (err, token) => {
           if (err) throw err;
-          res.status(200).json({ message: "user created", token: token });
+          res
+            .cookie("token", token, { sameSite: "none", secure: true })
+            .json({ message: "user created", token: token })
+            .status(200);
         }
       );
     })
@@ -52,7 +60,7 @@ AuthRouter.post("/register", async (req, res) => {
       console.log("error aagya hai ");
       return res
         .status(403)
-        .json({ message: "Something went wrong in Authrouter line 24" });
+        .json({ message: "Something went wrong in Authrouter" });
     });
 });
 

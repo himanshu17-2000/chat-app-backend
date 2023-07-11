@@ -3,6 +3,10 @@ const UserSchema = new mongoose.Schema(
   {
     username: { type: String, unique: true },
     password: String,
+    avatar: {
+      type: String,
+      default: process.env.DEFAULT_AVATAR,
+    },
   },
   { timestamps: true }
 );
