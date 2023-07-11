@@ -9,6 +9,7 @@ import dbconnector from "./utils/db.js";
 import cookieParser from "cookie-parser";
 import { WebSocketServer } from "ws";
 import jwt from "jsonwebtoken";
+import { Message } from "./models/Message.js";
 dotenv.config();
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -28,11 +29,7 @@ const server = app.listen(process.env.PORT, () => {
 const wss = new WebSocketServer({ server });
 const activeConnections = new Set();
 wss.on("connection", (connection, req) => {
-  if (activeConnections.has(connection)) {
-    connection.close(); // Close the duplicate connection
-    return;
-  }
-  activeConnections.add(connection);
+  console.log("Websocket connected");
 
   jwt.verify(
     req.headers["sec-websocket-protocol"],
@@ -40,13 +37,13 @@ wss.on("connection", (connection, req) => {
     {},
     (err, client_data) => {
       if (err) throw err;
-      console.log(client_data);
       const { id, username } = client_data;
       connection.id = id;
       connection.username = username;
     }
   );
-  console.log([...wss.clients].map((c) => c.username));
+
+  // notifying all the clients who are online
   [...wss.clients].forEach((client) => {
     client.send(
       JSON.stringify({
@@ -58,8 +55,31 @@ wss.on("connection", (connection, req) => {
     );
   });
 
-  connection.on("close", () => {
-    // Remove the connection from activeConnections set when the client disconnects
-    activeConnections.delete(connection);
+  connection.on("message", (message) => {
+    const messageData = JSON.parse(message.toString());
+    const { recipient, text, sender } = messageData;
+    console.log(messageData);
+    // we can use this sender also but in video we used connection.id
+    if (recipient && text) {
+      Message.create({
+        sender: sender,
+        recipient: recipient,
+        text: text,
+      }).then((messageDoc) => {
+        [...wss.clients]
+          .filter((c) => c.id === messageDoc.recipient)
+          .forEach((c) =>
+            c.send(
+              JSON.stringify({
+                id: messageDoc.id,
+                text: messageDoc.text,
+                sender: messageDoc.sender,
+                recipient: messageDoc.recipient,
+              })
+            )
+          );
+        console.log(messageDoc);
+      });
+    }
   });
 });
