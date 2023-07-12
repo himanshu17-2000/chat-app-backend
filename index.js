@@ -24,13 +24,11 @@ app.get("/", (req, res) => {
 
 dbconnector();
 const server = app.listen(process.env.PORT, () => {
-  console.log(`server is listening to ${process.env.PORT}`);
+  console.log(`Himanshu server is listening to ${process.env.PORT}`);
 });
 const wss = new WebSocketServer({ server });
 const activeConnections = new Set();
 wss.on("connection", (connection, req) => {
-  console.log("Websocket connected");
-
   jwt.verify(
     req.headers["sec-websocket-protocol"],
     process.env.JWT_SECRET,
@@ -55,31 +53,24 @@ wss.on("connection", (connection, req) => {
     );
   });
 
-  connection.on("message", (message) => {
+  connection.on("message", async (message) => {
     const messageData = JSON.parse(message.toString());
     const { recipient, text, sender } = messageData;
-    console.log(messageData);
     // we can use this sender also but in video we used connection.id
     if (recipient && text) {
-      Message.create({
-        sender: sender,
+      const messageDoc = await Message.create({
+        sender: connection.id,
         recipient: recipient,
-        text: text,
-      }).then((messageDoc) => {
-        [...wss.clients]
-          .filter((c) => c.id === messageDoc.recipient)
-          .forEach((c) =>
-            c.send(
-              JSON.stringify({
-                id: messageDoc.id,
-                text: messageDoc.text,
-                sender: messageDoc.sender,
-                recipient: messageDoc.recipient,
-              })
-            )
-          );
-        console.log(messageDoc);
+        text: text
       });
+
+      [...wss.clients].filter(c => c.id === recipient)
+        .forEach(c => c.send(JSON.stringify({
+          id: messageDoc._id,
+          text: text,
+          sender: connection.id,
+          recipient: recipient
+        })))
     }
   });
 });
