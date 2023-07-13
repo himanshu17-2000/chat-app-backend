@@ -11,7 +11,7 @@ AuthRouter.post("/login", async (req, res) => {
   if (foundUser) {
     const passOk = bcrypt.compareSync(password, foundUser.password);
     if (passOk) {
-      jwt.sign(
+      jwt.sign( 
         { id: foundUser.id, username: foundUser.username },
         process.env.JWT_SECRET,
         {},
