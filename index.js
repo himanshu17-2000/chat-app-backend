@@ -21,8 +21,8 @@ app.use("/app", AppRouter);
 app.get("/", (req, res) => {
   res.send("home");
 });
-
-dbconnector();
+  
+dbconnector(); 
 const server = app.listen(process.env.PORT, () => {
   console.log(`Himanshu server is listening to ${process.env.PORT}`);
 });
@@ -66,7 +66,7 @@ wss.on("connection", (connection, req) => {
 
       [...wss.clients].filter(c => c.id === recipient)
         .forEach(c => c.send(JSON.stringify({
-          id: messageDoc._id,
+          _id: messageDoc._id,
           text: text,
           sender: connection.id,
           recipient: recipient
@@ -74,4 +74,3 @@ wss.on("connection", (connection, req) => {
     }
   });
 });
- 
