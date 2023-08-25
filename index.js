@@ -70,8 +70,9 @@ wss.on("connection", (connection, req) => {
     clearTimeout(connection.deathTimer)
   })
 
+  const token = req.headers["sec-websocket-protocol"]
   jwt.verify(
-    req.headers["sec-websocket-protocol"],
+    token,
     process.env.JWT_SECRET,
     {},
     (err, client_data) => {
