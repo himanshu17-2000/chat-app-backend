@@ -29,7 +29,7 @@ app.use("/auth", AuthRouter);
 app.use('/uploads', express.static('uploads'));
 app.use("/app", AppRouter);
 app.get("/", (req, res) => {
-  res.send("home");
+  res.send("Welcome to himanshu's chat app");
 });
 
 dbconnector();
